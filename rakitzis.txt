@@ -1,0 +1,171 @@
+From andante!mit-eddie!micro-heart-of-gold.mit.edu!xn.ll.mit.edu!ames!elroy.jpl.nasa.gov!swrinde!cs.utexas.edu!tamsun!donald!byron Wed Dec 11 21:30:50 EST 1991
+>From: byron@donald.tamu.edu (Byron Rakitzis)
+Newsgroups: comp.graphics,comp.lang.misc,comp.sys.sgi,alt.sys.sun
+Subject: alpha release of pico for SGI, Sun
+Date: 10 Dec 91 07:10:57 GMT
+Sender: news@tamsun.tamu.edu
+Followup-To: comp.graphics
+Organization: College of Architecture, Texas A&M University
+
+I've spent some time working on a picture editor described in Gerard
+Holzman's book "The Digital Darkroom". I don't really have the time to
+take this program all the way, so I thought I'd offer to the net what
+results I have so far.
+
+I have a version of pico which compiles MIPS and SPARC code on the fly,
+and which can deal with simple C expressions which refer to bitmaps in
+terms of cartesian coordinates (x,y).  It supports 512x512 8-bit
+greyscale image files (in pgm format).
+
+Despite its limitations, it is a fun toy to play with.  Compared to
+"popi", a pico interpreter posted to the net a few months back, this
+program has far fewer features, but also runs one or two orders of
+magnitude faster (I am not making this up).
+
+You can get pico by anonymous ftp from archone.tamu.edu [128.194.53.42],
+in pub/pico. The file is pico.shar.Z, a 16k (compressed) shell archive.
+There are also two sample 512x512 8-bit pgm files, one of Dennis Ritchie's
+face, and the other of a woman's face, apparently named Chris (I don't
+recognize her). I don't remember where I got these bitmaps from; they
+were on the net somewhere. I am assuming it is ok to redistribute them.
+
+I am also sending a copy of pico to comp.sources.misc, so hold off if
+you have no ftp access to the Internet. (i.e., please don't ask me to
+mail you a copy, I cannot guarantee that I will be answering my mail
+during the holidays.)
+
+Byron.
+
+=================
+
+(Here's the README from pico.shar.Z:)
+
+pico -- 1st approximation, Byron Rakitzis, 12/10/91.
+
+This is a first stab at an implementation of pico, the picture editor
+from Bell Labs described in Gerard Holzman's book "The Digital
+Darkroom".
+
+This program is *not* a full-blown implementation of pico. However, I
+think the code is interesting enough that someone might be able to do
+something quite useful with it without too much effort.
+
+HOW TO BUILD PICO:
+
+Pico runs on SGI's and Sun-4's. Edit the Makefile to get the right 
+compiler and LDFLAGS. On a Sun4, you will need gcc or Sun's ansi
+cc, since pico is written with prototypes and new-style definitions.
+
+HOW TO USE IT:
+
+There are two options to pico, "-n" and "-d". "-n" suppresses the
+display output, and "-d" provides an assembly dump of the generated
+code after each expression is typed (using "dis" on the SGI and "adb"
+on the Sun).
+
+If you type "pico" you are prompted with a ">". You can now try typing
+in a C expression involving x and y. The greyscale value of the point
+[x,y] is determined by the value of the expression you type. e.g.,
+
+	> x+y
+
+creates a series of diagonal bands, since at x+y == 256 the grey
+value wraps from white to black. x*y is striking, as is x^y, x*x+y*y
+and many others.
+
+You can refer to the current image as old[x,y], e.g.,
+
+	> old[y,x]
+
+rotates the current image 90 degrees. The "u" command performs one
+level of undo, alternating between the current and previous images.
+
+If you create a file that you like, you can write it out (in pgm
+format) with the "w" command. Use double quotes to quote any special
+characters in the filename. i.e.,
+
+	> w foo
+but
+	> w "/tmp/foo"
+
+Similarly, "r" can be used to read pgm files (which for now must be
+512x512, 8-bit greyscale images).
+
+Once you have a file, you can always refer to it by the shorthand "$n"
+where n is the number of the file in the order it was read/written.
+Type "f" to see what files you have in memory.
+
+For example, to combine chris and dmr (the two sample bitmaps in the
+ftp directory) so that chris fades into dmr from left to right, you can
+try:
+
+	> r dmr
+	> r chris
+	> (x*dmr + (X-x)*chris) / (2*X)
+		[this can also be entered as]
+	> (x*$1 + (X-x)*$2) / (2*X)
+
+to reflect dmr's face along the line y=256, do:
+
+	y < Y/2 ? dmr[x,Y-y] : dmr
+
+(X refers to the constant 512, the maximum x coordinate. The other
+built in constants are Y (obvious) and Z, the maximum brightness level,
+255.)
+
+Finally, to quit type "q" or control-D.
+
+HOW IT WORKS:
+
+The program is made up of a parser of C expressions, a simple rd code
+generator for the MIPS and SPARC architectures, minimal display support
+for the GL (Silicon Graphics) library, and file I/O in pgm format. The
+image format is hardcoded at 512*512, 8-bit greyscale. An expression is
+compiled straight into an array and then gets called by pico in order
+to perform the operations on the image as fast as possible. This pico
+is at least an order of magnitude faster (if not more) than the popi
+posted to the net a few months back.
+
+To use this program you must be on an SGI or a Sun. The Sun version
+currently has no visual support, so you must explicitly write out pgm
+files and use "xloadimage" or some similar program to view the pico
+output.
+
+THINGS TO DO:
+
+I would consider extending the program in the following ways, though I
+don't have the time for it right now:
+
+1) Support different displays. Since the format of pico images is so
+simple, 8-bit greyscale, it should be easy to pop up images on just
+about any kind of computer with a color display. I have used pico
+crudely under X-windows by writing a pgm file out to /tmp and then
+running "xloadimage /tmp/pico" in order to view the file.
+
+2) Extend the pico language. Right now only C expressions are
+supported.  The only two variables recognized are x and y. This is a
+drawback, but as I mentioned, this isn't a full-blown pico. The command
+set is limited to r, w, f, u, q. (read, write, showfiles, undo, quit)
+
+3) Add support for polar coordinates, transcendental functions, and so
+on. The current implementation works only with the MIPS integer unit,
+i.e., add, subtract, multiply, divide and the bit operations. The SPARC
+port is even cruder; a function call is made for every multiply, divide
+and mod operation, since there is no hardware multiply etc.  A future
+version may address this problem by performing strength reduction on
+loops, but this is really beyond the scope of the project I started.
+(However, I do perform strength reduction on power of 2 multiplies
+and divides by substituting a shift.)
+
+4) Support color images. A very interesting project would be to support
+arbitrary 32-bit color images, i.e., with alpha channel. This might
+actually be of use to people who need to, say, boost the alpha channel
+of a particular image file. This also entails supporting "real" image
+file formats like rla.
+
+4) Support new architectures. I wrote pico on the MIPS, and spent about
+2 afternoons porting it to the SPARC. Consequently, the quality of the
+SPARC port is probably quite mediocre. Porting to other RISC machines,
+however should be equally straightforward.
+
+
