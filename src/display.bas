@@ -1,0 +1,33 @@
+10 CLS
+20 SCREEN 1		'Select graphics mode
+30 RES=8		'Use 8x8 halftoning screen
+40 DIM TRESH(8,8)	'Array with treshhold values
+45 			'Fill the array
+50 FOR Y = 0 TO RES-1
+60 FOR X = 0 TO RES-1
+70      READ TRESH(X,Y)
+90 NEXT X
+100 NEXT Y
+105 '
+110 DATA 0,128,32,160,8,136,40,168
+120 DATA 192,64,224,96,200,72,232,104
+130 DATA 48,176,16,144,56,184,24,152
+140 DATA 240,112,208,80,248,120,216,88
+150 DATA 12,140,44,172,4,132,36,164
+160 DATA 204,76,236,108,196,68,228,100
+170 DATA 60,188,28,156,52,180,20,148
+180 DATA 252,124,220,92,244,116,212,84
+185 					'Get the name of a 248x248 image file
+186 FOR I = 0 TO 16 : PRINT : NEXT I	'At bottom of the screen
+190 INPUT "file name";IMAGE$
+200 OPEN IMAGE$ FOR INPUT AS 2
+205 			'Read and display one byte (pixel) at a time
+210 FOR Y = 0 TO 247
+220 FOR X = 0 TO 247
+230     IF INPUT$(1,2) >= CHR$(TRESH(X MOD RES, Y MOD RES)) THEN PSET(X,Y)
+240 NEXT X
+250 NEXT Y
+255 '
+260 CLOSE 2		'Close the image file
+270 SCREEN 0		'Return to text mode
+270 END

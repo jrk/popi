@@ -1,0 +1,118 @@
+
+                        Digital Darkroom Software
+                        =========================
+	Copyright (c) 1988 by Bell Telephone Laboratories, Incorporated.
+
+The software on this diskette is described in detail in Chapters 5 and 6
+of the book `Beyond Photography - the Digital Darkroom.' It should
+run on any system with a C compiler and the standard libraries.
+(e.g. UNIX, MS-DOS, CP/M, running on any hardware with 256kb of RAM
+or more).
+
+UNIX systems
+============
+On a UNIX system (UNIX is a registered trademark of AT&T) the software
+is compiled into an executable file named `popi' as follows:
+	cc -o popi expr.c io.c lex.c lib.c main.c run.c
+
+On other systems you may have to find out exactly where standard
+libraries and header files are stored and include these explicitly.
+
+MS-DOS systems
+==============
+On my MS-DOS system (MS-DOS is a trademark of the Microsoft
+Corporation) running on an AT&T PC-6300+ computer, I compile `popi'
+as follows, using the Lattice C-compiler.
+All Lattice files (including the header files and the library files)
+are kept in directory c:\lc on this system. The environment variable
+`INCLUDE' is used by the compiler to find the header file `stdio.h'
+used in file `io.c.' After setting the variable, all files are first
+compiled and then linked with the appropriate libraries. Note, they
+may have different names on your system.
+In particular, the files `c:\lc\cd', `c:\lc\lcd', and `c:\lc\lcmd'
+(the C initialization code, the standard library, and the math library) are
+sometimes named `c:\lc\d\c', `c:\lc\d\lc', and `c:\lc\d\lcm', respectively.
+I use the `D' memory model.
+	set INCLUDE=c:\lc
+	lc -md expr.c io.c lex.c lib.c main.c run.c
+	link expr+io+lex+lib+main+run+c:\lc\cd,popi,,c:\lc\lcd+c:\lc\lcmd
+
+A Quick Test
+============
+To test that the software is running properly you can execute the
+following commands, where `$' is the operating system prompt, and
+`->' is the image editor's prompt. `face1' is a sample image file
+provided on the diskette. It is 248x248=61504 bytes long.
+	$ popi
+	-> r face1
+	-> new=$1
+	-> w out
+	-> q
+	$ 
+
+The two files `face1' and `out' should now be equal. On a UNIX system
+you can quickly verify that, for instance, by typing:
+	$ cmp face1 out
+	$ 
+
+which should produce no output.
+On an MS-DOS system you would compare the files as follows, where `A>'
+is the system prompt:
+	A> comp face1 out
+	Files compare OK
+	A> 
+
+
+Display
+=======
+When the software runs properly, your next assignment is to make
+or to find a display routine that can show the images on a monitor,
+a printer, or whatever output medium you choose. A first step
+might be to use a separate program to display the images:
+	$ popi
+	-> r face1
+	-> new=Z-$1
+	-> w nuface
+	-> q
+	$ display face1
+	$ display nuface
+	$ 
+
+An example display routine in BASIC is provided on the source diskette
+in ASCII form in a file called
+	DISPLAY.BAS
+If you have `gwbasic' and a display with medium or high resolution graphics,
+it lets you display an image with a simple, but quite effective
+dithering pattern to simulate greyscale (see Chapter 5, p. 106).
+It will prompt for a filename:
+	A> gwbasic display
+	file name? face1
+
+Use it as an example for writing your own display routines. It is not
+ideal. For one thing, it is quite slow.
+Secondly, BASIC and MS-DOS do not allow arbitary pixel values
+to be stored in files and read as if they were characters,
+so you will have to remove those values from an image before
+it is written to disk.
+You can trivially do that with `popi':
+
+	-> old==10||old==26?old-1:old	remove values 10 and 26
+	-> w nuface			write the file
+	-> q				quit
+	A> gwbasic display		etc.
+
+If you will be working on an MS-DOS system the best solution will
+be to make a change in the file `io.c', replacing routine `putpix()'
+with the alternative routine given there to filter out these values
+automatically each time a file is written to disk. (The alternative
+routine is in fact enabled by default. To turn it off include a
+statement "#define NODOS	1" at the beginning of the file.)
+
+The next step is to integrate the system specific display routines into
+the software itself, following the guidelines given in Chapter 5.
+Be convinced, it is well worth the effort!
+
+Note carefully that all software and all digitized photos on these
+diskettes are copyright protected.
+
+Murray Hill, January 1988
